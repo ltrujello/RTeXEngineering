@@ -83,7 +83,7 @@ def sentences_in_page(page: np.array) -> list[np.array]:
             row1_nonwhite = (row1 < 230).astype("int")  # Cast bool values to 1s and 0s
             row2_nonwhite = (row2 < 230).astype("int")
             # Take their dot product and check if it's zero; it's nonzero if we're scanning a set of letters.
-            if np.inner(row1_nonwhite, row2_nonwhite) != 0:
+            if np.inner(row1_nonwhite, row2_nonwhite) != 0 or np.sum(page[j:j+15] < 255) > 0:
                 sentence.append(row2)
                 j += 1
             else:

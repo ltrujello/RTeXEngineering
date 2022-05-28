@@ -66,8 +66,9 @@ def img_to_array(img_file: str) -> np.array:
 
 
 def sentences_in_page(page: np.array) -> list[np.array]:
-    # Given a pixel array representing an image of a single page, we return a list of pixel arrays,
-    # obtained from the image of the page, which represent the sentences in the page.
+    """ Given a pixel array representing an image of a single page, we return a list of pixel arrays,
+    obtained from the image of the page, which represent the sentences in the page.
+    """
     row_ind = 0
     sentences = []
     while row_ind < len(page) - 1:
@@ -83,7 +84,7 @@ def sentences_in_page(page: np.array) -> list[np.array]:
             row1_nonwhite = (row1 < 230).astype("int")  # Cast bool values to 1s and 0s
             row2_nonwhite = (row2 < 230).astype("int")
             # Take their dot product and check if it's zero; it's nonzero if we're scanning a set of letters.
-            if np.inner(row1_nonwhite, row2_nonwhite) != 0 or np.sum(page[j:j+15] < 255) > 0:
+            if np.inner(row1_nonwhite, row2_nonwhite) != 0 or ((np.sum(page[j:j+15] < 255) > 0) and len(sentence) > 1):
                 sentence.append(row2)
                 j += 1
             else:

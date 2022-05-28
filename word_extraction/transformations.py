@@ -1,6 +1,58 @@
 import torch
 from skyimage import transform
+import math
+from torchvision.transforms import Pad, CenterCrop
 
+class CustomPad:
+    def __init__(self, output_size: tuple[float, float]):
+        self.output_size = output_size
+        
+
+    def __call__(self, sample):
+        print("CustomPad")
+        image = sample['image']
+
+        h, w = image.shape[:2]
+        print('original shape', h, w)
+        new_h, new_w = self.output_size
+
+        left_pad = 0
+        top_pad = 0
+        right_pad = 0
+        bottom_pad = 0
+
+        if (horiz_pad := new_w - w) > 0:
+            print("padding horizontally")
+            left_pad = math.ceil(horiz_pad / 2) 
+            right_pad = math.floor(horiz_pad / 2) 
+            
+        if (vertical_pad := new_h - h) > 0:
+            print("padding horizontally")
+            top_pad = math.ceil(vertical_pad / 2) 
+            bottom_pad = math.floor(vertical_pad / 2) 
+            
+        padding = Pad((left_pad, top_pad, right_pad, bottom_pad), fill=255)
+        if isinstance(image, np.ndarray):
+            image = torch.from_numpy(image)
+        image = padding(image)
+        
+        print(type(image), (left_pad, top_pad, right_pad, bottom_pad))
+        return {'image': image, 'letter': sample["letter"]}
+        
+class CustomCenterCrop:
+    def __init__(self, output_size: tuple[float, float]):
+        self.output_size = output_size
+        self.torch_center_crop = CenterCrop(output_size)
+
+    def __call__(self, sample):
+        print("CustomCenterCrop")
+        image = sample["image"]
+        if isinstance(image, np.ndarray):
+            image = torch.from_numpy(image)
+        
+        image = self.torch_center_crop(image)
+        return {'image': image, 'letter': sample["letter"]}
+        
 
 class Rescale(object):
     """Rescale the image in a sample to a given size.
@@ -64,16 +116,3 @@ class RandomCrop(object):
 
         return {'image': image, 'letter': sample["letter"]}
 
-
-class ToTensor(object):
-    """Convert ndarrays in sample to Tensors."""
-
-    def __call__(self, sample):
-        image, letter = sample['image'], sample['letter']
-
-        # swap color axis because
-        # numpy image: H x W x C
-        # torch image: C x H x W
-        image = image.transpose((2, 0, 1))
-        return {'image': torch.from_numpy(image),
-                'letter': torch.from_numpy(letter)}
